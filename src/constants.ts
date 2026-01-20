@@ -5,13 +5,13 @@ import { Cartesian3 } from 'cesium';
  * 经度: 116.4074° E, 纬度: 39.9042° N (北京)
  * 高度: 15000 米
  */
-export const CESIUM_HOME_POSITION = Cartesian3.fromDegrees(116.4074, 39.9042, 15000);
+export const CESIUM_HOME_POSITION = Cartesian3.fromDegrees(116.4074, 39.9042, 1000);
 
 /**
  * Cesium 相机默认朝向
  */
 export const CESIUM_HOME_HEADING = 0; // 朝向（北方）
-export const CESIUM_HOME_PITCH = -90; // 俯仰角（垂直向下）
+export const CESIUM_HOME_PITCH = -50; // 俯仰角
 export const CESIUM_HOME_ROLL = 0; // 翻滚角
 
 /**

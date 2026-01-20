@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@import 'daisyui';
+@plugin 'daisyui';
 
 html,
 body {
@@ -13,7 +13,7 @@ body {
 body {
   color: #fff;
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  background-image: linear-gradient(to bottom, #020917, #101725);
+  background-image: linear-gradient(to bottom, #3361cc, #a7acb6);
 }
 
 #app {
