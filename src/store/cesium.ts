@@ -1,8 +1,8 @@
-import { defineStore } from 'pinia';
-import { Viewer } from 'cesium';
-import { ref } from 'vue';
+import { defineStore } from "pinia";
+import { Viewer } from "cesium";
+import { ref } from "vue";
 
-export const useCesiumStore = defineStore('cesium', () => {
+export const useCesiumStore = defineStore("cesium", () => {
   const viewer = ref<Viewer | null>(null);
 
   const setViewer = (newViewer: Viewer | null) => {

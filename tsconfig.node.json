@@ -6,12 +6,8 @@
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true
   },
-  "include": [
-    "tsconfig.json"
-  ],
+  "include": ["tsconfig.json"],
   "paths": {
-    "@/*": [
-      "./src/*"
-    ]
+    "@/*": ["./src/*"]
   }
 }

@@ -1,4 +1,4 @@
-import { Cartesian3 } from 'cesium';
+import { Cartesian3 } from "cesium";
 
 /**
  * Cesium 相机默认位置（Home Point）

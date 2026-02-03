@@ -13,36 +13,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from "vue-router";
 
 interface RouteComponentProps {
-  componentName: "Home" | "RasterOffset" | "VectorOffset"
+  componentName: "Home" | "RasterOffset" | "VectorOffset";
 }
 
 const router = createRouter({
   history: createWebHistory(),
-  routes: [{
-    path: '/',
-    name: 'Home',
-    component: () => import('../views/Home.vue'),
-    props: <RouteComponentProps>{
-      componentName: "Home"
-    }
-  }, {
-    path: '/raster-offset',
-    name: 'RasterOffset',
-    component: () => import('../views/Home.vue'),
-    props: <RouteComponentProps>{
-      componentName: "RasterOffset"
-    }
-  }, {
-    path: '/vector-offset',
-    name: 'VectorOffset',
-    component: () => import('../views/Home.vue'),
-    props: <RouteComponentProps>{
-      componentName: "VectorOffset"
-    }
-  }]
-})
+  routes: [
+    {
+      path: "/",
+      name: "Home",
+      component: () => import("../views/Home.vue"),
+      props: <RouteComponentProps>{
+        componentName: "Home",
+      },
+    },
+    {
+      path: "/raster-offset",
+      name: "RasterOffset",
+      component: () => import("../views/Home.vue"),
+      props: <RouteComponentProps>{
+        componentName: "RasterOffset",
+      },
+    },
+    {
+      path: "/vector-offset",
+      name: "VectorOffset",
+      component: () => import("../views/Home.vue"),
+      props: <RouteComponentProps>{
+        componentName: "VectorOffset",
+      },
+    },
+  ],
+});
 
-export default router
+export default router;
