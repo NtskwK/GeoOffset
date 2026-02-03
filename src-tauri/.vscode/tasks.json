@@ -1,0 +1,10 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Check Rust code",
+			"type": "shell",
+			"command": "cargo check"
+		}
+	]
+}

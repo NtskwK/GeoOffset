@@ -1,5 +1,7 @@
-use flexi_logger::{Age, Cleanup, Criterion, Duplicate, FileSpec, Logger, Naming};
 use log::{debug, info};
+use tauri_plugin_log::{Target, TargetKind};
+
+mod commands;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -47,25 +49,24 @@ fn export_raster_with_offset(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    // Initialize logging
-    // Global level set to 'debug' so it appears in console
-    Logger::try_with_str("debug")
-        .expect("Failed to initialize log specification")
-        .log_to_file(FileSpec::default().directory("logs").basename("geooffset"))
-        .rotate(
-            Criterion::Age(Age::Day),
-            Naming::Timestamps,
-            Cleanup::KeepLogFiles(30),
-        )
-        // Duplicate everything to stderr (console)
-        .duplicate_to_stderr(Duplicate::All)
-        .start()
-        .expect("Failed to start logger");
-
-    info!("Application started successfully");
-
+    let logs_dir = commands::utils::get_log_dir();
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_http::init())
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .targets([
+                    Target::new(TargetKind::Stdout),
+                    Target::new(TargetKind::Folder {
+                        path: logs_dir,
+                        file_name: Some("GeoOffset-tauri".into()),
+                    }),
+                ])
+                .level(log::LevelFilter::Debug)
+                .build(),
+        )
         .invoke_handler(tauri::generate_handler![
             greet,
             summarize_raster,
