@@ -17,18 +17,19 @@
     "@tauri-apps/plugin-opener": "^2",
     "cesium": "^1.137.0",
     "pinia": "^3.0.4",
-    "vue": "^3.5.13"
+    "vue": "^3.5.13",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@rsbuild/core": "^1.7.2",
     "@rsbuild/plugin-vue": "^1.2.3",
     "@tailwindcss/postcss": "^4.1.18",
     "@tauri-apps/cli": "^2",
-    "typescript": "~5.6.2",
-    "tailwindcss": "^4.1.18",
-    "vue-tsc": "^2.1.10",
     "daisyui": "^5.5.14",
     "oxfmt": "^0.24.0",
-    "oxlint": "^1.39.0"
+    "oxlint": "^1.39.0",
+    "tailwindcss": "^4.1.18",
+    "typescript": "~5.6.2",
+    "vue-tsc": "^2.1.10"
   }
 }
