@@ -1,9 +1,9 @@
 [package]
+authors = ["Ntskwk"]
+description = "A GeoToolbox App by Tauri"
+edition = "2021"
 name = "geooffset"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -11,23 +11,24 @@ edition = "2021"
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "geooffset_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
+name = "geooffset_lib"
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = {version = "2", features = []}
 
 [dependencies]
-tauri = { version = "2", features = [] }
-tauri-plugin-opener = "2"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-georaster = "0.2.0"
-geojson = "0.24.2"
-shapefile = "0.7.0"
-geo = "0.32.0"
-log = "0.4.29"
-env_logger = "0.11.8"
 chrono = "0.4.43"
-flexi_logger = { version = "0.31.8", features = ["colors"] }
-
+env_logger = "0.11.8"
+flexi_logger = {version = "0.31.8", features = ["colors"]}
+geo = "0.32.0"
+geojson = "0.24.2"
+georaster = "0.2.0"
+log = "0.4.29"
+serde = {version = "1", features = ["derive"]}
+serde_json = "1"
+shapefile = "0.7.0"
+tauri = {version = "2", features = []}
+tauri-plugin-dialog = "2.6.0"
+tauri-plugin-fs = "2.4.5"
+tauri-plugin-opener = "2"
