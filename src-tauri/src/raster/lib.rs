@@ -7,7 +7,8 @@ use std::path::Path;
 
 const WINDOW_SIZE: usize = 512;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[ts(export)]
+#[derive(Debug, Serialize, Deserialize, ts_rs::TS)]
 pub struct RasterMetadata {
     pub file_path: String,
     pub width: u32,
@@ -17,7 +18,8 @@ pub struct RasterMetadata {
     pub projection: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[ts(export)]
+#[derive(Debug, Serialize, Deserialize, ts_rs::TS)]
 pub struct TransformInfo {
     pub upper_left_x: f64,
     pub upper_left_y: f64,
@@ -25,7 +27,8 @@ pub struct TransformInfo {
     pub pixel_height: f64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[ts(export)]
+#[derive(Debug, Serialize, Deserialize, ts_rs::TS)]
 pub struct ExportResult {
     pub success: bool,
     pub message: String,
