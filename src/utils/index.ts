@@ -1,7 +1,48 @@
-import { SingleTileImageryProvider, GeoJsonDataSource } from 'cesium';
+import * as THREE from 'three';
+import { SingleTileImageryProvider, GeoJsonDataSource, Rectangle, ImageryLayerCollection, DataSourceCollection, EntityCollection, Cartesian3 } from 'cesium';
 import shp from 'shpjs';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
+import { TDSLoader } from 'three/examples/jsm/loaders/TDSLoader.js';
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 
 import { useCesiumStore } from '@/store/cesium';
+
+/**
+ * 使用 Three.js 将 OBJ/FBX/3DS 模型转换为 glB Blob URL
+ */
+const convertToGlb = async (file: File, ext: string): Promise<string> => {
+  const arrayBuffer = await file.arrayBuffer();
+  const exporter = new GLTFExporter();
+
+  let scene: THREE.Object3D;
+
+  if (ext === '.obj') {
+    const loader = new OBJLoader();
+    const text = new TextDecoder().decode(arrayBuffer);
+    scene = loader.parse(text);
+  } else if (ext === '.fbx') {
+    const loader = new FBXLoader();
+    scene = loader.parse(arrayBuffer, '');
+  } else if (ext === '.3ds') {
+    const loader = new TDSLoader();
+    scene = loader.parse(arrayBuffer, '');
+  } else {
+    throw new Error(`Unsupported format: ${ext}`);
+  }
+
+  return new Promise<string>((resolve, reject) => {
+    exporter.parse(
+      scene,
+      (result) => {
+        const blob = new Blob([result as ArrayBuffer], { type: 'model/gltf-binary' });
+        resolve(URL.createObjectURL(blob));
+      },
+      reject,
+      { binary: true }
+    );
+  });
+};
 
 const add_raster_to_map = (files: File[]) => {
   if (files.length < 1) {
@@ -17,25 +58,38 @@ const add_raster_to_map = (files: File[]) => {
   }
 
   for (const file of files) {
-    if (!file.type.startsWith('image/')) {
-      console.error(`File ${file.name} is not an image and will be skipped.`);
-      continue;
-    }
     const reader = new FileReader();
-    reader.onload = async (event) => {
-      if (event.target?.result) {
-        console.log('Adding raster to map:', file.name);
-        cesiumStore.viewer!.imageryLayers.addImageryProvider(
-          new SingleTileImageryProvider({
-            url: event.target.result as string,
-          })
-        );
+    if (file.name.endsWith('.tif') || file.name.endsWith('.tiff')) {
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          console.log('Adding raster to map:', file.name);
+          cesiumStore.viewer!.imageryLayers.addImageryProvider(
+            new SingleTileImageryProvider({
+              url: event.target.result as string,
+              rectangle: Rectangle.fromDegrees(-180, -90, 180, 90)
+            })
+          );
+        }
       }
-    };
-    reader.readAsDataURL(file);
-  }
-};
-
+      reader.readAsDataURL(file);
+    } else if (file.name.endsWith('.iso')) {
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          console.log('Adding ISO raster to map:', file.name);
+          cesiumStore.viewer!.imageryLayers.addImageryProvider(
+            new SingleTileImageryProvider({
+              url: event.target.result as string,
+              rectangle: Rectangle.fromDegrees(-180, -90, 180, 90)
+            })
+          );
+        }
+      };
+      reader.readAsDataURL(file);
+    } else {
+      console.error(`${file.name} can not be recognized as a supported raster file and will be skipped.`);
+    }
+  };
+}
 
 const add_vector_to_map = (files: File[]) => {
   if (files.length < 1) {
@@ -83,3 +137,83 @@ const add_vector_to_map = (files: File[]) => {
     console.error(`${files[0].name} can not be recognized as a supported vector file and will be skipped.`);
   }
 };
+
+const add_entities_to_map = (files: File[]) => {
+  if (files.length < 1) {
+    throw new Error('No files provided');
+  }
+
+  const cesiumStore = useCesiumStore();
+  if (!cesiumStore.viewer) {
+    console.error('Cesium viewer is not initialized');
+    return;
+  }
+
+
+  for (const file of files) {
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+
+    if (ext === '.gltf' || ext === '.glb') {
+      const blobUrl = URL.createObjectURL(file);
+      console.log('Adding 3D model to map:', file.name);
+      cesiumStore.viewer!.entities.add({
+        name: file.name,
+        position: Cartesian3.fromDegrees(0, 0, 0),
+        model: {
+          uri: blobUrl,
+        },
+      });
+    } else if (ext === '.obj' || ext === '.fbx' || ext === '.3ds') {
+      convertToGlb(file, ext)
+        .then((blobUrl) => {
+          console.log(`Converted ${file.name} to glB, adding to map`);
+          cesiumStore.viewer!.entities.add({
+            name: file.name,
+            position: Cartesian3.fromDegrees(0, 0, 0),
+            model: {
+              uri: blobUrl,
+            },
+          });
+        })
+        .catch((err) => {
+          console.error(`Failed to convert ${file.name} to glTF:`, err);
+        });
+    } else {
+      console.error(`${file.name} can not be recognized as a supported 3D model file and will be skipped.`);
+      continue;
+    }
+  }
+}
+
+const get_all_raster_layers = (): ImageryLayerCollection | undefined => {
+  const cesiumStore = useCesiumStore();
+  if (!cesiumStore.viewer) {
+    console.error('Cesium viewer is not initialized');
+    return;
+  }
+
+  const layers = cesiumStore.viewer.imageryLayers;
+  return layers;
+}
+
+const get_all_vector_layers = (): DataSourceCollection | undefined => {
+  const cesiumStore = useCesiumStore();
+  if (!cesiumStore.viewer) {
+    console.error('Cesium viewer is not initialized');
+    return;
+  }
+
+  const layers = cesiumStore.viewer.dataSources;
+  return layers;
+}
+
+const get_all_entities = (): EntityCollection | undefined => {
+  const cesiumStore = useCesiumStore();
+  if (!cesiumStore.viewer) {
+    console.error('Cesium viewer is not initialized');
+    return;
+  }
+
+  const entities = cesiumStore.viewer.entities;
+  return entities;
+}
