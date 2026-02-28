@@ -44,7 +44,7 @@ const convertToGlb = async (file: File, ext: string): Promise<string> => {
   });
 };
 
-const add_raster_to_map = (files: File[]) => {
+const addRasterToMap = (files: File[]) => {
   if (files.length < 1) {
     throw new Error('No files provided');
   }
@@ -91,7 +91,7 @@ const add_raster_to_map = (files: File[]) => {
   };
 }
 
-const add_vector_to_map = (files: File[]) => {
+const addVectorToMap = (files: File[]) => {
   if (files.length < 1) {
     throw new Error('No files provided');
   }
@@ -107,9 +107,13 @@ const add_vector_to_map = (files: File[]) => {
     reader.onload = async (event) => {
       if (event.target?.result) {
         console.log('Adding vector to map:', files[0].name);
-        cesiumStore.viewer!.dataSources.add(
-          new GeoJsonDataSource(event.target.result as string)
-        );
+        try {
+          const dataSource = await GeoJsonDataSource.load(JSON.parse(event.target.result as string));
+          dataSource.name = files[0].name;
+          await cesiumStore.viewer!.dataSources.add(dataSource);
+        } catch (e) {
+          console.error(e);
+        }
       }
     };
     reader.readAsText(files[0]);
@@ -125,7 +129,8 @@ const add_vector_to_map = (files: File[]) => {
           const dataSource = await GeoJsonDataSource.load(
             Array.isArray(geojson) ? geojson[0] : geojson
           );
-          cesiumStore.viewer!.dataSources.add(dataSource);
+          dataSource.name = files[0].name;
+          await cesiumStore.viewer!.dataSources.add(dataSource);
         } catch (err) {
           console.error('Failed to parse shapefile:', err);
         }
@@ -138,7 +143,7 @@ const add_vector_to_map = (files: File[]) => {
   }
 };
 
-const add_entities_to_map = (files: File[]) => {
+const addEntitiesToMap = (files: File[]) => {
   if (files.length < 1) {
     throw new Error('No files provided');
   }
@@ -148,7 +153,6 @@ const add_entities_to_map = (files: File[]) => {
     console.error('Cesium viewer is not initialized');
     return;
   }
-
 
   for (const file of files) {
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
@@ -185,7 +189,7 @@ const add_entities_to_map = (files: File[]) => {
   }
 }
 
-const get_all_raster_layers = (): ImageryLayerCollection | undefined => {
+const getAllRasterLayers = (): ImageryLayerCollection | undefined => {
   const cesiumStore = useCesiumStore();
   if (!cesiumStore.viewer) {
     console.error('Cesium viewer is not initialized');
@@ -196,7 +200,7 @@ const get_all_raster_layers = (): ImageryLayerCollection | undefined => {
   return layers;
 }
 
-const get_all_vector_layers = (): DataSourceCollection | undefined => {
+const getAllVectorLayers = (): DataSourceCollection | undefined => {
   const cesiumStore = useCesiumStore();
   if (!cesiumStore.viewer) {
     console.error('Cesium viewer is not initialized');
@@ -207,7 +211,7 @@ const get_all_vector_layers = (): DataSourceCollection | undefined => {
   return layers;
 }
 
-const get_all_entities = (): EntityCollection | undefined => {
+const getAllEntities = (): EntityCollection | undefined => {
   const cesiumStore = useCesiumStore();
   if (!cesiumStore.viewer) {
     console.error('Cesium viewer is not initialized');
@@ -216,4 +220,14 @@ const get_all_entities = (): EntityCollection | undefined => {
 
   const entities = cesiumStore.viewer.entities;
   return entities;
+}
+
+export {
+  addRasterToMap,
+  addVectorToMap,
+  addEntitiesToMap,
+  getAllRasterLayers,
+  getAllVectorLayers,
+  getAllEntities
+
 }
