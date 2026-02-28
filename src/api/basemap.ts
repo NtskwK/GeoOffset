@@ -4,16 +4,19 @@ import { useConfigStore } from "@/store";
 interface BaseMap {
   name: string;
   url: string;
+  maxLevel?: number;
 }
 
 const amap: BaseMap = {
   name: "高德地图",
   url: "https://webst01.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}",
+  maxLevel: 18,
 };
 
 const arcgis: BaseMap = {
   name: "ArcGIS 影像",
   url: "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png",
+  maxLevel: 18,
 };
 
 /**
@@ -39,7 +42,7 @@ export const createImageryViewModels = (): ProviderViewModel[] => {
         iconUrl: "",
         tooltip: bm.name,
         creationFunction: () =>
-          new UrlTemplateImageryProvider({ url: bm.url }),
+          new UrlTemplateImageryProvider({ url: bm.url, maximumLevel: bm.maxLevel ? bm.maxLevel : undefined }),
       })
   );
 };
