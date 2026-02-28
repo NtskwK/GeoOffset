@@ -21,6 +21,12 @@ onMounted(() => {
     homeButton: true,
     imageryProviderViewModels: imageryViewModels,
     selectedImageryProviderViewModel: imageryViewModels[0],
+    animation: false,
+    timeline: false,
+    fullscreenButton: false,
+    infoBox: false,
+    navigationHelpButton: false,
+    geocoder: false,
   });
 
   const initialOrientation = {
@@ -62,3 +68,10 @@ onUnmounted(() => {
     ></div>
   </div>
 </template>
+
+<style scoped>
+/* Hide Cesium credits Logo */
+#cesium-container :deep(.cesium-widget-credits) {
+  display: none !important;
+}
+</style>
