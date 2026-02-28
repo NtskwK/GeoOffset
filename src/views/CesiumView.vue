@@ -8,13 +8,19 @@ import {
   CESIUM_HOME_ROLL,
 } from "@/constants";
 import { Viewer, Math as CesiumMath } from "cesium";
+import { createImageryViewModels } from "@/api/basemap";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 
 const cesiumStore = useCesiumStore();
 
 onMounted(() => {
+  const imageryViewModels = createImageryViewModels();
+
   const newViewer = new Viewer("cesium-container", {
-    // Options can go here
+    baseLayerPicker: true,
+    homeButton: true,
+    imageryProviderViewModels: imageryViewModels,
+    selectedImageryProviderViewModel: imageryViewModels[0],
   });
 
   const initialOrientation = {

@@ -1,3 +1,6 @@
+import { UrlTemplateImageryProvider, ProviderViewModel } from "cesium";
+import { useConfigStore } from "@/store";
+
 interface BaseMap {
   name: string;
   url: string;
@@ -9,13 +12,34 @@ const amap: BaseMap = {
 };
 
 const arcgis: BaseMap = {
-  name: "ArcGIS",
+  name: "ArcGIS 影像",
   url: "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png",
 };
 
-const custom: BaseMap = {
-  name: "自定义地图",
-  url: "https://your.custom.tile.server/{z}/{x}/{y}.png",
+/**
+ * 获取底图列表（延迟读取 store，避免在 Pinia 初始化前调用）
+ */
+export const getBaseMapList = (): BaseMap[] => {
+  const configStore = useConfigStore();
+  const custom: BaseMap = {
+    name: "自定义地图",
+    url: configStore.customBaseMapUrl,
+  };
+  return [amap, arcgis, custom];
 };
 
-export const baseMapList = [amap, arcgis, custom];
+/**
+ * 生成 Cesium BaseLayerPicker 所需的 ProviderViewModel 列表
+ */
+export const createImageryViewModels = (): ProviderViewModel[] => {
+  return getBaseMapList().map(
+    (bm) =>
+      new ProviderViewModel({
+        name: bm.name,
+        iconUrl: "",
+        tooltip: bm.name,
+        creationFunction: () =>
+          new UrlTemplateImageryProvider({ url: bm.url }),
+      })
+  );
+};

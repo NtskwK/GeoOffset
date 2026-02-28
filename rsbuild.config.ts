@@ -31,17 +31,17 @@ export default defineConfig({
     },
   },
   server: {
-    port: 1420,
+    port: 3000,
     strictPort: true,
     host: host,
   },
   dev: {
     client: host
       ? {
-          protocol: "ws",
-          host,
-          port: 1421,
-        }
+        protocol: "ws",
+        host,
+        port: 3000,
+      }
       : undefined,
   },
   tools: {

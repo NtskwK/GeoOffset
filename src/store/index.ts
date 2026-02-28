@@ -12,3 +12,17 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+import { defineStore } from "pinia";
+import { ref } from "vue";
+
+export const useConfigStore = defineStore("config", () => {
+  const customBaseMapUrl = ref("https://your.custom.tile.server/{z}/{x}/{y}.png");
+  const setCustomBaseMapUrl = (url: string) => {
+    customBaseMapUrl.value = url;
+  };
+  return {
+    customBaseMapUrl,
+    setCustomBaseMapUrl,
+  };
+});
