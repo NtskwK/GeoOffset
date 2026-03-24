@@ -10,7 +10,9 @@ import {
   ConstantPositionProperty,
   ConstantProperty,
 } from 'cesium';
+import proj4 from 'proj4';
 import { useCesiumStore } from '@/store/cesium';
+import { getProj4Def } from '@/utils/index';
 
 /**
  * 对栅格图层进行经纬度偏移
@@ -231,4 +233,168 @@ const offset_entity = (entity: Entity, offsetX: number, offsetY: number) => {
   console.log(`Entity "${entity.name || entity.id}" offset applied: dX=${offsetX}°, dY=${offsetY}°`);
 };
 
-export { offset_raster_layer, offset_vector_layer, offset_entity };
+/**
+ * 将 Cartesian3 位置从源坐标系转换到 WGS84 (EPSG:4326)
+ * @param position - 当前 Cartesian3 位置（假定经纬度值存储在 lon/lat 中但单位为源 CRS）
+ * @param srcCrs - 源 CRS 标识，如 "EPSG:32649"
+ * @returns 转换后的 WGS84 Cartesian3
+ */
+const convertPositionToWGS84 = (position: Cartesian3, srcCrs: string): Cartesian3 => {
+  const carto = Cartographic.fromCartesian(position, Ellipsoid.WGS84);
+  const lon = CesiumMath.toDegrees(carto.longitude);
+  const lat = CesiumMath.toDegrees(carto.latitude);
+  const [newLon, newLat] = proj4(srcCrs, 'EPSG:4326', [lon, lat]);
+  return Cartesian3.fromDegrees(newLon, newLat, carto.height);
+};
+
+/**
+ * 将矢量数据源（DataSource）中所有实体坐标从指定坐标系转换到 WGS84
+ * @param dataSource - 要转换的 DataSource
+ * @param epsgCode - 源 EPSG 代码，如 32649
+ */
+const convert_vector_to_wgs84 = (dataSource: DataSource, epsgCode: number) => {
+  const cesiumStore = useCesiumStore();
+  if (!cesiumStore.viewer) {
+    console.error('Cesium viewer is not initialized');
+    return;
+  }
+
+  if (epsgCode === 4326) {
+    console.warn('数据已经是 EPSG:4326，无需转换');
+    return;
+  }
+
+  const def = getProj4Def(epsgCode);
+  if (!def) {
+    console.error(`未找到 EPSG:${epsgCode} 的投影定义，无法转换`);
+    return;
+  }
+
+  const srcCrs = `EPSG:${epsgCode}`;
+  proj4.defs(srcCrs, def);
+
+  const entities = dataSource.entities.values;
+  const time = cesiumStore.viewer.clock.currentTime;
+  let count = 0;
+
+  for (const entity of entities) {
+    // 转换点位置
+    if (entity.position) {
+      const currentPos = entity.position.getValue(time);
+      if (currentPos) {
+        entity.position = new ConstantPositionProperty(
+          convertPositionToWGS84(currentPos, srcCrs)
+        ) as any;
+        count++;
+      }
+    }
+
+    // 转换 polyline
+    if (entity.polyline?.positions) {
+      const positions = entity.polyline.positions.getValue(time);
+      if (positions) {
+        const newPositions = positions.map((pos: Cartesian3) =>
+          convertPositionToWGS84(pos, srcCrs)
+        );
+        entity.polyline.positions = new ConstantProperty(newPositions) as any;
+        count++;
+      }
+    }
+
+    // 转换 polygon
+    if (entity.polygon?.hierarchy) {
+      const hierarchy = entity.polygon.hierarchy.getValue(time);
+      if (hierarchy) {
+        const newPositions = hierarchy.positions.map((pos: Cartesian3) =>
+          convertPositionToWGS84(pos, srcCrs)
+        );
+        const newHoles = hierarchy.holes?.map((hole: any) => ({
+          positions: hole.positions.map((pos: Cartesian3) =>
+            convertPositionToWGS84(pos, srcCrs)
+          ),
+          holes: hole.holes,
+        }));
+        entity.polygon.hierarchy = new ConstantProperty({
+          positions: newPositions,
+          holes: newHoles || [],
+        }) as any;
+        count++;
+      }
+    }
+  }
+
+  console.log(`矢量图层已从 EPSG:${epsgCode} 转换到 WGS84，共 ${count} 个要素`);
+};
+
+/**
+ * 将单个实体坐标从指定坐标系转换到 WGS84
+ * @param entity - 要转换的 Entity
+ * @param epsgCode - 源 EPSG 代码，如 32649
+ */
+const convert_entity_to_wgs84 = (entity: Entity, epsgCode: number) => {
+  const cesiumStore = useCesiumStore();
+  if (!cesiumStore.viewer) {
+    console.error('Cesium viewer is not initialized');
+    return;
+  }
+
+  if (epsgCode === 4326) {
+    console.warn('数据已经是 EPSG:4326，无需转换');
+    return;
+  }
+
+  const def = getProj4Def(epsgCode);
+  if (!def) {
+    console.error(`未找到 EPSG:${epsgCode} 的投影定义，无法转换`);
+    return;
+  }
+
+  const srcCrs = `EPSG:${epsgCode}`;
+  proj4.defs(srcCrs, def);
+  const time = cesiumStore.viewer.clock.currentTime;
+
+  // 转换点/模型位置
+  if (entity.position) {
+    const currentPos = entity.position.getValue(time);
+    if (currentPos) {
+      entity.position = new ConstantPositionProperty(
+        convertPositionToWGS84(currentPos, srcCrs)
+      ) as any;
+    }
+  }
+
+  // 转换 polyline
+  if (entity.polyline?.positions) {
+    const positions = entity.polyline.positions.getValue(time);
+    if (positions) {
+      const newPositions = positions.map((pos: Cartesian3) =>
+        convertPositionToWGS84(pos, srcCrs)
+      );
+      entity.polyline.positions = new ConstantProperty(newPositions) as any;
+    }
+  }
+
+  // 转换 polygon
+  if (entity.polygon?.hierarchy) {
+    const hierarchy = entity.polygon.hierarchy.getValue(time);
+    if (hierarchy) {
+      const newPositions = hierarchy.positions.map((pos: Cartesian3) =>
+        convertPositionToWGS84(pos, srcCrs)
+      );
+      const newHoles = hierarchy.holes?.map((hole: any) => ({
+        positions: hole.positions.map((pos: Cartesian3) =>
+          convertPositionToWGS84(pos, srcCrs)
+        ),
+        holes: hole.holes,
+      }));
+      entity.polygon.hierarchy = new ConstantProperty({
+        positions: newPositions,
+        holes: newHoles || [],
+      }) as any;
+    }
+  }
+
+  console.log(`实体 "${entity.name || entity.id}" 已从 EPSG:${epsgCode} 转换到 WGS84`);
+};
+
+export { offset_raster_layer, offset_vector_layer, offset_entity, convert_vector_to_wgs84, convert_entity_to_wgs84 };

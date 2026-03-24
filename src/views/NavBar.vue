@@ -1,13 +1,44 @@
 <script setup lang="ts">
 import { ref, watch, onUnmounted } from "vue";
 import { useCesiumStore } from "@/store/cesium";
-import type { ImageryLayer, DataSource, Entity, Event } from "cesium";
+import { addRasterToMap, addVectorToMap, addEntitiesToMap } from "@/utils";
+import type { ImageryLayer, DataSource, Entity } from "cesium";
 
 const cesiumStore = useCesiumStore();
 
 const rasterLayers = ref<ImageryLayer[]>([]);
 const vectorDataSources = ref<DataSource[]>([]);
 const entities = ref<Entity[]>([]);
+
+// 通过隐藏的 input 让用户选择文件
+const pickFiles = (accept: string, multiple = true): Promise<File[]> => {
+  return new Promise((resolve) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = accept;
+    input.multiple = multiple;
+    input.onchange = () => {
+      const files = input.files ? Array.from(input.files) : [];
+      resolve(files);
+    };
+    input.click();
+  });
+};
+
+const handleAddRaster = async () => {
+  const files = await pickFiles(".tif,.tiff,.iso");
+  if (files.length) addRasterToMap(files);
+};
+
+const handleAddVector = async () => {
+  const files = await pickFiles(".geojson,.json,.kml,.kmz,.gpx,.topojson,.zip", false);
+  if (files.length) addVectorToMap(files);
+};
+
+const handleAddEntity = async () => {
+  const files = await pickFiles(".gltf,.glb,.obj,.fbx,.3ds");
+  if (files.length) addEntitiesToMap(files);
+};
 
 // 用于存储事件移除函数
 const removeListeners: (() => void)[] = [];
@@ -98,7 +129,7 @@ onUnmounted(() => {
           <summary>Raster</summary>
           <ul>
             <li v-for="(layer, index) in rasterLayers" :key="index">Layer {{ index + 1 }}</li>
-            <button @click="addRasterToMap" class="btn btn-success btn-square w-full">
+            <button @click="handleAddRaster" class="btn btn-success btn-square w-full">
               Add Raster
             </button>
           </ul>
@@ -111,7 +142,7 @@ onUnmounted(() => {
             <li v-for="(dataSource, index) in vectorDataSources" :key="index">
               {{ dataSource.name || `Vector ${index + 1}` }}
             </li>
-            <button @click="addVectorToMap" class="btn btn-success btn-square w-full">
+            <button @click="handleAddVector" class="btn btn-success btn-square w-full">
               Add Vector
             </button>
           </ul>
@@ -124,7 +155,7 @@ onUnmounted(() => {
             <li v-for="(entity, index) in entities" :key="entity.id">
               {{ entity.name || `Entity ${index + 1}` }}
             </li>
-            <button @click="addEntityToMap" class="btn btn-success btn-square w-full">
+            <button @click="handleAddEntity" class="btn btn-success btn-square w-full">
               Add Entity
             </button>
           </ul>
