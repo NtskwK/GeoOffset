@@ -71,14 +71,14 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="h-full w-full p-4 relative">
+  <div class="h-full w-full p-3 relative">
     <div
       id="cesium-container"
-      class="h-full w-full bg-[#1e293b] rounded-2xl shadow-2xl overflow-hidden"
+      class="h-full w-full bg-slate-900 rounded-xl shadow-2xl overflow-hidden border border-slate-700/50"
     ></div>
 
     <!-- 自定义底图选择器 -->
-    <div class="absolute bottom-8 right-8">
+    <div class="absolute bottom-6 right-6">
       <BaseLayerPicker />
     </div>
   </div>

@@ -1,4 +1,11 @@
-import { ImageryLayer, Math as CesiumMath, Entity, Cartographic, Ellipsoid, DataSource } from "cesium";
+import {
+  ImageryLayer,
+  Math as CesiumMath,
+  Entity,
+  Cartographic,
+  Ellipsoid,
+  DataSource,
+} from "cesium";
 import * as THREE from "three";
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
 import { OBJExporter } from "three/examples/jsm/exporters/OBJExporter.js";
@@ -9,9 +16,7 @@ import { OBJExporter } from "three/examples/jsm/exporters/OBJExporter.js";
  * @param rect - 图层的地理范围 (Rectangle, 弧度)
  * @returns GeoTIFF 的 ArrayBuffer
  */
-const buildGeoTiff = async (
-  layer: ImageryLayer
-): Promise<ArrayBuffer> => {
+const buildGeoTiff = async (layer: ImageryLayer): Promise<ArrayBuffer> => {
   const provider = layer.imageryProvider;
   const rect = provider.rectangle;
   const url = (provider as any).url || (provider as any)._url;
@@ -53,7 +58,7 @@ const buildGeoTiff = async (
         west,
         north,
         pixelWidth,
-        pixelHeight
+        pixelHeight,
       );
       resolve(tiffBuffer);
     };
@@ -72,7 +77,7 @@ const createMinimalGeoTiff = (
   originX: number,
   originY: number,
   pixelWidth: number,
-  pixelHeight: number
+  pixelHeight: number,
 ): ArrayBuffer => {
   const samplesPerPixel = 4; // RGBA
   const imageSize = width * height * samplesPerPixel;
@@ -118,20 +123,28 @@ const createMinimalGeoTiff = (
   let pos = 0;
 
   // --- TIFF Header (little-endian) ---
-  view.setUint16(pos, 0x4949, false); pos += 2; // 'II' (little-endian)
-  view.setUint16(pos, 42, true); pos += 2;       // Magic number
-  view.setUint32(pos, ifdOffset, true); pos += 4; // Offset to first IFD
+  view.setUint16(pos, 0x4949, false);
+  pos += 2; // 'II' (little-endian)
+  view.setUint16(pos, 42, true);
+  pos += 2; // Magic number
+  view.setUint32(pos, ifdOffset, true);
+  pos += 4; // Offset to first IFD
 
   // --- IFD ---
   pos = ifdOffset;
-  view.setUint16(pos, ifdEntryCount, true); pos += 2;
+  view.setUint16(pos, ifdEntryCount, true);
+  pos += 2;
 
   // Helper: write IFD entry
   const writeEntry = (tag: number, type: number, count: number, value: number) => {
-    view.setUint16(pos, tag, true); pos += 2;
-    view.setUint16(pos, type, true); pos += 2;
-    view.setUint32(pos, count, true); pos += 4;
-    view.setUint32(pos, value, true); pos += 4;
+    view.setUint16(pos, tag, true);
+    pos += 2;
+    view.setUint16(pos, type, true);
+    pos += 2;
+    view.setUint32(pos, count, true);
+    pos += 4;
+    view.setUint32(pos, value, true);
+    pos += 4;
   };
 
   // 256: ImageWidth (LONG)
@@ -164,32 +177,37 @@ const createMinimalGeoTiff = (
   writeEntry(33922, 12, 6, tiepointOffset);
 
   // Next IFD offset = 0
-  view.setUint32(pos, 0, true); pos += 4;
+  view.setUint32(pos, 0, true);
+  pos += 4;
 
   // --- Extra data ---
 
   // BitsPerSample: [8, 8, 8, 8]
   pos = bpsOffset;
   for (let i = 0; i < 4; i++) {
-    view.setUint16(pos, 8, true); pos += 2;
+    view.setUint16(pos, 8, true);
+    pos += 2;
   }
 
   // SampleFormat: [1, 1, 1, 1] (unsigned int)
   pos = sfOffset;
   for (let i = 0; i < 4; i++) {
-    view.setUint16(pos, 1, true); pos += 2;
+    view.setUint16(pos, 1, true);
+    pos += 2;
   }
 
   // ModelTiepointTag
   pos = tiepointOffset;
   for (let i = 0; i < 6; i++) {
-    view.setFloat64(pos, tiepointData[i], true); pos += 8;
+    view.setFloat64(pos, tiepointData[i], true);
+    pos += 8;
   }
 
   // ModelPixelScaleTag
   pos = pixelScaleOffset;
   for (let i = 0; i < 3; i++) {
-    view.setFloat64(pos, pixelScaleData[i], true); pos += 8;
+    view.setFloat64(pos, pixelScaleData[i], true);
+    pos += 8;
   }
 
   // --- Image data (RGBA) ---
@@ -225,7 +243,11 @@ type RasterExportFormat = "tiff" | "iso";
  * @param format - 文件格式: "tiff" 或 "iso"
  * @param filename - 文件名（不含扩展名，可选）
  */
-const download_image_layer = async (layer: ImageryLayer, format: RasterExportFormat, filename?: string) => {
+const download_image_layer = async (
+  layer: ImageryLayer,
+  format: RasterExportFormat,
+  filename?: string,
+) => {
   try {
     const defaultName = filename || "export";
 
@@ -301,11 +323,13 @@ const entityToThreeScene = async (entity: Entity, currentTime: any): Promise<THR
       const points: THREE.Vector3[] = [];
       for (const pos of positions) {
         const carto = Cartographic.fromCartesian(pos, Ellipsoid.WGS84);
-        points.push(new THREE.Vector3(
-          CesiumMath.toDegrees(carto.longitude),
-          carto.height,
-          CesiumMath.toDegrees(carto.latitude)
-        ));
+        points.push(
+          new THREE.Vector3(
+            CesiumMath.toDegrees(carto.longitude),
+            carto.height,
+            CesiumMath.toDegrees(carto.latitude),
+          ),
+        );
       }
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
       const material = new THREE.LineBasicMaterial({ color: 0x00ff00 });
@@ -323,7 +347,7 @@ const entityToThreeScene = async (entity: Entity, currentTime: any): Promise<THR
         vertices.push(
           CesiumMath.toDegrees(carto.longitude),
           carto.height,
-          CesiumMath.toDegrees(carto.latitude)
+          CesiumMath.toDegrees(carto.latitude),
         );
       }
 
@@ -385,7 +409,7 @@ const exportAsGltf = (scene: THREE.Scene): Promise<Blob> => {
         resolve(new Blob([json], { type: "model/gltf+json" }));
       },
       reject,
-      { binary: false }
+      { binary: false },
     );
   });
 };
@@ -402,7 +426,7 @@ const exportAsGlb = (scene: THREE.Scene): Promise<Blob> => {
         resolve(new Blob([result as ArrayBuffer], { type: "model/gltf-binary" }));
       },
       reject,
-      { binary: true }
+      { binary: true },
     );
   });
 };
@@ -427,7 +451,7 @@ const download_entity = async (
   entities: Entity[],
   format: EntityExportFormat,
   currentTime: any,
-  filename?: string
+  filename?: string,
 ) => {
   if (entities.length < 1) {
     throw new Error("No entities provided");
@@ -460,7 +484,9 @@ const download_entity = async (
     case "fbx":
       // Three.js 没有内置 FBX 导出器，先导出为 glB 后以 .fbx 扩展名保存
       // 建议用户使用 glTF/glB 格式，或在桌面端用专业工具转换
-      console.warn("FBX export is not natively supported. Exporting as glB binary with .fbx extension. Use Blender or other tools for true FBX conversion.");
+      console.warn(
+        "FBX export is not natively supported. Exporting as glB binary with .fbx extension. Use Blender or other tools for true FBX conversion.",
+      );
       blob = await exportAsGlb(scene);
       ext = "fbx";
       break;
@@ -598,18 +624,14 @@ const geoJsonToKml = (geojson: any): string => {
     } else if (geom.type === "Polygon") {
       const rings = geom.coordinates
         .map((ring: number[][]) => {
-          const coords = ring
-            .map((c: number[]) => `${c[0]},${c[1]},${c[2] || 0}`)
-            .join(" ");
+          const coords = ring.map((c: number[]) => `${c[0]},${c[1]},${c[2] || 0}`).join(" ");
           return `<LinearRing><coordinates>${coords}</coordinates></LinearRing>`;
         })
         .join("");
       geometryKml = `<Polygon><outerBoundaryIs>${rings}</outerBoundaryIs></Polygon>`;
     }
 
-    placemarks.push(
-      `<Placemark><name>${escapeXml(name)}</name>${geometryKml}</Placemark>`
-    );
+    placemarks.push(`<Placemark><name>${escapeXml(name)}</name>${geometryKml}</Placemark>`);
   }
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -650,7 +672,8 @@ const geoJsonToShpZip = (geojson: any): ArrayBuffer => {
   // 过滤同类型要素
   const sameTypeFeatures = features.filter((f) => {
     if (shpType === 1) return f.geometry.type === "Point";
-    if (shpType === 3) return f.geometry.type === "LineString" || f.geometry.type === "MultiLineString";
+    if (shpType === 3)
+      return f.geometry.type === "LineString" || f.geometry.type === "MultiLineString";
     return f.geometry.type === "Polygon" || f.geometry.type === "MultiPolygon";
   });
 
@@ -690,9 +713,13 @@ const geoJsonToShpZip = (geojson: any): ArrayBuffer => {
       const dv = new DataView(recordContent);
       let offset = 0;
 
-      dv.setInt32(offset, shpType, true); offset += 4;
+      dv.setInt32(offset, shpType, true);
+      offset += 4;
 
-      let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
+      let bx0 = Infinity,
+        by0 = Infinity,
+        bx1 = -Infinity,
+        by1 = -Infinity;
       const allPts: number[][] = [];
       for (const ring of rings) {
         for (const pt of ring) {
@@ -708,23 +735,32 @@ const geoJsonToShpZip = (geojson: any): ArrayBuffer => {
       bboxAll[2] = Math.max(bboxAll[2], bx1);
       bboxAll[3] = Math.max(bboxAll[3], by1);
 
-      dv.setFloat64(offset, bx0, true); offset += 8;
-      dv.setFloat64(offset, by0, true); offset += 8;
-      dv.setFloat64(offset, bx1, true); offset += 8;
-      dv.setFloat64(offset, by1, true); offset += 8;
+      dv.setFloat64(offset, bx0, true);
+      offset += 8;
+      dv.setFloat64(offset, by0, true);
+      offset += 8;
+      dv.setFloat64(offset, bx1, true);
+      offset += 8;
+      dv.setFloat64(offset, by1, true);
+      offset += 8;
 
-      dv.setInt32(offset, numParts, true); offset += 4;
-      dv.setInt32(offset, totalPoints, true); offset += 4;
+      dv.setInt32(offset, numParts, true);
+      offset += 4;
+      dv.setInt32(offset, totalPoints, true);
+      offset += 4;
 
       let ptIdx = 0;
       for (const ring of rings) {
-        dv.setInt32(offset, ptIdx, true); offset += 4;
+        dv.setInt32(offset, ptIdx, true);
+        offset += 4;
         ptIdx += ring.length;
       }
 
       for (const pt of allPts) {
-        dv.setFloat64(offset, pt[0], true); offset += 8;
-        dv.setFloat64(offset, pt[1], true); offset += 8;
+        dv.setFloat64(offset, pt[0], true);
+        offset += 8;
+        dv.setFloat64(offset, pt[1], true);
+        offset += 8;
       }
     }
 
@@ -769,8 +805,10 @@ const geoJsonToShpZip = (geojson: any): ArrayBuffer => {
 
   let shxOffset = 100;
   for (const rec of shxRecords) {
-    shxDv.setInt32(shxOffset, rec.offset, false); shxOffset += 4;
-    shxDv.setInt32(shxOffset, rec.contentLength, false); shxOffset += 4;
+    shxDv.setInt32(shxOffset, rec.offset, false);
+    shxOffset += 4;
+    shxDv.setInt32(shxOffset, rec.contentLength, false);
+    shxOffset += 4;
   }
 
   // DBF file
@@ -798,7 +836,7 @@ const geoJsonToShpZip = (geojson: any): ArrayBuffer => {
   dbfU8.set(nameBytes.slice(0, 11), fieldDescOffset);
   dbfDv.setUint8(fieldDescOffset + 11, 0x43); // 'C'
   dbfDv.setUint8(fieldDescOffset + 16, fieldLen);
-  dbfDv.setUint8(fieldDescOffset + 32, 0x0D); // terminator
+  dbfDv.setUint8(fieldDescOffset + 32, 0x0d); // terminator
 
   let dbfRecOffset = headerLen;
   for (const feat of sameTypeFeatures) {
@@ -889,12 +927,12 @@ const createSimpleZip = (files: Record<string, ArrayBuffer>): ArrayBuffer => {
 
 /** CRC32 计算 */
 const crc32 = (data: Uint8Array): number => {
-  let crc = 0xFFFFFFFF;
+  let crc = 0xffffffff;
   const table = getCrc32Table();
   for (let i = 0; i < data.length; i++) {
-    crc = (crc >>> 8) ^ table[(crc ^ data[i]) & 0xFF];
+    crc = (crc >>> 8) ^ table[(crc ^ data[i]) & 0xff];
   }
-  return (crc ^ 0xFFFFFFFF) >>> 0;
+  return (crc ^ 0xffffffff) >>> 0;
 };
 
 let _crc32Table: Uint32Array | null = null;
@@ -904,7 +942,7 @@ const getCrc32Table = (): Uint32Array => {
   for (let i = 0; i < 256; i++) {
     let c = i;
     for (let j = 0; j < 8; j++) {
-      c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
     }
     _crc32Table[i] = c;
   }
@@ -922,7 +960,7 @@ const download_vector = (
   dataSource: DataSource,
   format: VectorExportFormat,
   currentTime: any,
-  filename?: string
+  filename?: string,
 ) => {
   const defaultName = filename || "vector_export";
   const geojson = dataSourceToGeoJson(dataSource, currentTime);

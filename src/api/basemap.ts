@@ -42,7 +42,10 @@ export const createImageryViewModels = (): ProviderViewModel[] => {
         iconUrl: "",
         tooltip: bm.name,
         creationFunction: () =>
-          new UrlTemplateImageryProvider({ url: bm.url, maximumLevel: bm.maxLevel ? bm.maxLevel : undefined }),
-      })
+          new UrlTemplateImageryProvider({
+            url: bm.url,
+            maximumLevel: bm.maxLevel ? bm.maxLevel : undefined,
+          }),
+      }),
   );
 };

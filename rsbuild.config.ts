@@ -38,10 +38,10 @@ export default defineConfig({
   dev: {
     client: host
       ? {
-        protocol: "ws",
-        host,
-        port: 3000,
-      }
+          protocol: "ws",
+          host,
+          port: 3000,
+        }
       : undefined,
   },
   tools: {

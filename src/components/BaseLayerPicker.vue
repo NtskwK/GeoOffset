@@ -45,7 +45,7 @@ const selectBaseMap = async (index: number) => {
 // 点击外部关闭
 const handleClickOutside = (e: MouseEvent) => {
   const target = e.target as HTMLElement;
-  if (!target.closest('.base-layer-picker')) {
+  if (!target.closest(".base-layer-picker")) {
     isOpen.value = false;
   }
 };
@@ -53,9 +53,9 @@ const handleClickOutside = (e: MouseEvent) => {
 // 监听全局点击
 watch(isOpen, (open) => {
   if (open) {
-    document.addEventListener('click', handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
   } else {
-    document.removeEventListener('click', handleClickOutside);
+    document.removeEventListener("click", handleClickOutside);
   }
 });
 </script>
@@ -112,7 +112,7 @@ watch(isOpen, (open) => {
             :class="[
               selectedIndex === index
                 ? 'bg-blue-500/20 border border-blue-500/50'
-                : 'hover:bg-slate-700/50 border border-transparent'
+                : 'hover:bg-slate-700/50 border border-transparent',
             ]"
           >
             <!-- 缩略图占位 -->
@@ -121,7 +121,7 @@ watch(isOpen, (open) => {
               :class="[
                 selectedIndex === index
                   ? 'bg-blue-500/30 text-blue-300'
-                  : 'bg-slate-700 text-slate-400 group-hover:bg-slate-600'
+                  : 'bg-slate-700 text-slate-400 group-hover:bg-slate-600',
               ]"
             >
               {{ baseMap.name.charAt(0) }}
@@ -131,20 +131,19 @@ watch(isOpen, (open) => {
             <div class="flex-1 text-left">
               <div
                 class="text-sm font-medium"
-                :class="selectedIndex === index ? 'text-blue-300' : 'text-slate-300 group-hover:text-slate-200'"
+                :class="
+                  selectedIndex === index
+                    ? 'text-blue-300'
+                    : 'text-slate-300 group-hover:text-slate-200'
+                "
               >
                 {{ baseMap.name }}
               </div>
-              <div class="text-xs text-slate-500">
-                最大层级: {{ baseMap.maxLevel || 18 }}
-              </div>
+              <div class="text-xs text-slate-500">最大层级: {{ baseMap.maxLevel || 18 }}</div>
             </div>
 
             <!-- 选中指示器 -->
-            <div
-              v-if="selectedIndex === index"
-              class="w-2 h-2 rounded-full bg-blue-400"
-            />
+            <div v-if="selectedIndex === index" class="w-2 h-2 rounded-full bg-blue-400" />
           </button>
         </div>
 
