@@ -6,15 +6,19 @@ import ControllerViews from "./ControllerViews/Index.vue";
 
 <template>
   <div class="h-full flex flex-row overflow-hidden">
-    <div class="flex-3 flex flex-col h-full">
-      <div class="flex-5 h-full bg-blue-500">
+    <!-- 左侧主区域：3D视图 + 底部面板 -->
+    <div class="flex-[3] flex flex-col h-full min-w-0">
+      <!-- 3D 地图视图 -->
+      <div class="flex-[5] h-full relative">
         <CesiumView />
       </div>
-      <div class="flex-1 bg-yellow-500">
+      <!-- 底部面板 -->
+      <div class="flex-1 bg-slate-800/50 border-t border-slate-700/50 min-h-0">
         <BottomViews />
       </div>
     </div>
-    <div class="flex-1 min-h-0 p-10 bg-red-500">
+    <!-- 右侧控制面板 -->
+    <div class="flex-1 min-h-0 bg-slate-800/80 border-l border-slate-700/50">
       <ControllerViews />
     </div>
   </div>
