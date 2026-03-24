@@ -1,7 +1,7 @@
 import { UrlTemplateImageryProvider, ProviderViewModel } from "cesium";
 import { useConfigStore } from "@/store";
 
-interface BaseMap {
+export interface BaseMap {
   name: string;
   url: string;
   maxLevel?: number;

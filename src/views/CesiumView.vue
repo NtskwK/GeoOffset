@@ -7,20 +7,21 @@ import {
   CESIUM_HOME_PITCH,
   CESIUM_HOME_ROLL,
 } from "@/constants";
-import { Viewer, Math as CesiumMath } from "cesium";
-import { createImageryViewModels } from "@/api/basemap";
+import { Viewer, Math as CesiumMath, UrlTemplateImageryProvider } from "cesium";
+import { getBaseMapList } from "@/api/basemap";
+import BaseLayerPicker from "@/components/BaseLayerPicker.vue";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 
 const cesiumStore = useCesiumStore();
 
 onMounted(() => {
-  const imageryViewModels = createImageryViewModels();
+  // 使用第一个底图作为默认底图
+  const baseMaps = getBaseMapList();
+  const defaultBaseMap = baseMaps[0];
 
   const newViewer = new Viewer("cesium-container", {
-    baseLayerPicker: true,
+    baseLayerPicker: false,
     homeButton: true,
-    imageryProviderViewModels: imageryViewModels,
-    selectedImageryProviderViewModel: imageryViewModels[0],
     animation: false,
     timeline: false,
     fullscreenButton: false,
@@ -28,6 +29,13 @@ onMounted(() => {
     navigationHelpButton: false,
     geocoder: false,
   });
+
+  // 添加默认底图
+  const imageryProvider = new UrlTemplateImageryProvider({
+    url: defaultBaseMap.url,
+    maximumLevel: defaultBaseMap.maxLevel ?? 18,
+  });
+  newViewer.imageryLayers.addImageryProvider(imageryProvider);
 
   const initialOrientation = {
     heading: CesiumMath.toRadians(CESIUM_HOME_HEADING),
@@ -61,11 +69,16 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="h-full w-full p-4">
+  <div class="h-full w-full p-4 relative">
     <div
       id="cesium-container"
       class="h-full w-full bg-[#1e293b] rounded-2xl shadow-2xl overflow-hidden"
     ></div>
+
+    <!-- 自定义底图选择器 -->
+    <div class="absolute bottom-8 right-8">
+      <BaseLayerPicker />
+    </div>
   </div>
 </template>
 
