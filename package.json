@@ -18,6 +18,7 @@
     "@tauri-apps/plugin-dialog": "^2.6.0",
     "@tauri-apps/plugin-fs": "^2.4.5",
     "@tauri-apps/plugin-opener": "^2",
+    "@vueuse/core": "^14.2.1",
     "cesium": "^1.137.0",
     "pinia": "^3.0.4",
     "proj4": "^2.20.2",

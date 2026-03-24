@@ -2,6 +2,8 @@
 import { ref, watch, onUnmounted } from "vue";
 import { useCesiumStore } from "@/store/cesium";
 import { addRasterToMap, addVectorToMap, addEntitiesToMap } from "@/utils";
+import NavSection from "@/components/NavSection.vue";
+import NavItem from "@/components/NavItem.vue";
 import type { ImageryLayer, DataSource, Entity } from "cesium";
 
 const cesiumStore = useCesiumStore();
@@ -124,43 +126,36 @@ onUnmounted(() => {
     navbar
     <ul class="menu bg-base-200 rounded-box lg: mb-64 text-black w-[80%]">
       <li>Home</li>
-      <li>
-        <details open>
-          <summary>Raster</summary>
-          <ul>
-            <li v-for="(layer, index) in rasterLayers" :key="index">Layer {{ index + 1 }}</li>
-            <button @click="handleAddRaster" class="btn btn-success btn-square w-full">
-              Add Raster
-            </button>
-          </ul>
-        </details>
-      </li>
-      <li>
-        <details open>
-          <summary>Vector</summary>
-          <ul>
-            <li v-for="(dataSource, index) in vectorDataSources" :key="index">
-              {{ dataSource.name || `Vector ${index + 1}` }}
-            </li>
-            <button @click="handleAddVector" class="btn btn-success btn-square w-full">
-              Add Vector
-            </button>
-          </ul>
-        </details>
-      </li>
-      <li>
-        <details open>
-          <summary>Entities</summary>
-          <ul>
-            <li v-for="(entity, index) in entities" :key="entity.id">
-              {{ entity.name || `Entity ${index + 1}` }}
-            </li>
-            <button @click="handleAddEntity" class="btn btn-success btn-square w-full">
-              Add Entity
-            </button>
-          </ul>
-        </details>
-      </li>
+      <NavSection title="Raster" add-label="Add Raster" @add="handleAddRaster">
+        <NavItem
+          v-for="(layer, index) in rasterLayers"
+          :key="index"
+          :label="`Layer ${index + 1}`"
+          @focus="console.log('Focus raster', index)"
+          @export="console.log('Export raster', index)"
+          @delete="console.log('Delete raster', index)"
+        />
+      </NavSection>
+      <NavSection title="Vector" add-label="Add Vector" @add="handleAddVector">
+        <NavItem
+          v-for="(dataSource, index) in vectorDataSources"
+          :key="index"
+          :label="dataSource.name || `Vector ${index + 1}`"
+          @focus="console.log('Focus vector', index)"
+          @export="console.log('Export vector', index)"
+          @delete="console.log('Delete vector', index)"
+        />
+      </NavSection>
+      <NavSection title="Entities" add-label="Add Entity" @add="handleAddEntity">
+        <NavItem
+          v-for="(entity, index) in entities"
+          :key="entity.id"
+          :label="entity.name || `Entity ${index + 1}`"
+          @focus="console.log('Focus entity', entity.id)"
+          @export="console.log('Export entity', entity.id)"
+          @delete="console.log('Delete entity', entity.id)"
+        />
+      </NavSection>
     </ul>
   </nav>
 </template>
