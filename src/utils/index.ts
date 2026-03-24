@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SingleTileImageryProvider, GeoJsonDataSource, Rectangle, ImageryLayerCollection, DataSourceCollection, EntityCollection, Cartesian3 } from 'cesium';
+import { SingleTileImageryProvider, GeoJsonDataSource, Rectangle, ImageryLayerCollection, DataSourceCollection, EntityCollection, Cartesian3, ImageryLayer } from 'cesium';
 import shp from 'shpjs';
 import proj4 from 'proj4';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
@@ -274,7 +274,7 @@ const addEntitiesToMap = (files: File[]) => {
   }
 }
 
-const getAllRasterLayers = (): ImageryLayerCollection | undefined => {
+const getAllRasterLayers = (): ImageryLayer[] | undefined => {
   const cesiumStore = useCesiumStore();
   if (!cesiumStore.viewer) {
     console.error('Cesium viewer is not initialized');
@@ -282,7 +282,16 @@ const getAllRasterLayers = (): ImageryLayerCollection | undefined => {
   }
 
   const layers = cesiumStore.viewer.imageryLayers;
-  return layers;
+
+  // 排除底图，只返回数据图层
+  const dataLayers: ImageryLayer[] = [];
+  for (let i = 0; i < layers.length; i++) {
+    const layer = layers.get(i);
+    if (!layer.isBaseLayer) {
+      dataLayers.push(layer);
+    }
+  }
+  return dataLayers;
 }
 
 const getAllVectorLayers = (): DataSourceCollection | undefined => {

@@ -48,11 +48,15 @@ const removeListeners: (() => void)[] = [];
 const refreshRasterLayers = () => {
   const viewer = cesiumStore.viewer;
   if (!viewer) return;
+
   const layers = viewer.imageryLayers;
   const result = [];
-  // 跳过 index 0 的底图图层，只显示用户导入的栅格
-  for (let i = 1; i < layers.length; i++) {
-    result.push(layers.get(i));
+  // 排除底图图层，只显示用户导入的栅格
+  for (let i = 0; i < layers.length; i++) {
+    const layer = layers.get(i);
+    if (!layer.isBaseLayer) {
+      result.push(layer);
+    }
   }
   rasterLayers.value = result;
 };
@@ -73,6 +77,14 @@ const refreshEntities = () => {
   if (!viewer) return;
   entities.value = [...viewer.entities.values];
 };
+
+// 监听底图变化，刷新栅格列表
+watch(
+  () => cesiumStore.baseLayer,
+  () => {
+    refreshRasterLayers();
+  },
+);
 
 // 监听 viewer 变化，绑定 Cesium 事件
 watch(

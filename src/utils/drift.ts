@@ -27,6 +27,12 @@ const offset_raster_layer = (layer: ImageryLayer, offsetX: number, offsetY: numb
     return;
   }
 
+  // 检查是否是底图，底图不允许偏移
+  if (layer === cesiumStore.getBaseLayer()) {
+    console.warn('Cannot offset base layer');
+    return;
+  }
+
   const layers = cesiumStore.viewer.imageryLayers;
   const provider = layer.imageryProvider;
 

@@ -20,6 +20,7 @@ const selectBaseMap = async (index: number) => {
   isOpen.value = false;
 
   const viewer = cesiumStore.viewer;
+  const currentBaseLayer = cesiumStore.getBaseLayer();
   if (!viewer) return;
 
   const baseMap = baseMaps[index];
@@ -30,9 +31,15 @@ const selectBaseMap = async (index: number) => {
     maximumLevel: baseMap.maxLevel ?? 18,
   });
 
-  // 移除所有现有图层并添加新图层
-  viewer.imageryLayers.removeAll();
-  viewer.imageryLayers.addImageryProvider(imageryProvider);
+  // 移除旧底图（如果存在）
+  if (currentBaseLayer) {
+    viewer.imageryLayers.remove(currentBaseLayer);
+  }
+
+  // 添加新底图到最底层（index 0）
+  const newBaseLayer = viewer.imageryLayers.addImageryProvider(imageryProvider, 0);
+  // 更新 store 中的底图引用
+  cesiumStore.setBaseLayer(newBaseLayer);
 };
 
 // 点击外部关闭

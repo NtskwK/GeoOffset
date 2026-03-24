@@ -30,12 +30,14 @@ onMounted(() => {
     geocoder: false,
   });
 
-  // 添加默认底图
+  // 添加默认底图（插入到最底层）
   const imageryProvider = new UrlTemplateImageryProvider({
     url: defaultBaseMap.url,
     maximumLevel: defaultBaseMap.maxLevel ?? 18,
   });
-  newViewer.imageryLayers.addImageryProvider(imageryProvider);
+  const baseImageryLayer = newViewer.imageryLayers.addImageryProvider(imageryProvider);
+  // 保存底图引用到 store
+  cesiumStore.setBaseLayer(baseImageryLayer);
 
   const initialOrientation = {
     heading: CesiumMath.toRadians(CESIUM_HOME_HEADING),
